@@ -1,8 +1,10 @@
 package com.game.bj;
 
 import com.game.bj.dto.Card;
+import com.game.bj.dto.GameResult;
 import com.game.bj.dto.Player;
 import com.game.bj.service.DeckService;
+import com.game.bj.service.GameService;
 
 import java.util.List;
 import java.util.Scanner;
@@ -23,6 +25,7 @@ public class Main {
         System.out.println(String.format("Welcome %s, you have %d games to play", player.getName(), numberOfGames));
 
         DeckService deckService = new DeckService();
+        GameService gameService = new GameService();
         deckService.createDeck(1);
 
         int counter = 1;
@@ -32,8 +35,20 @@ public class Main {
         do {
             System.out.println("-------------------->>>>>>");
             System.out.println(String.format("Game %d", counter));
-            game(player, deckService, scanner);
+            game(player, deckService, scanner, gameService);
 
+            List<Card> dealerHand = gameService.getDealerHand(deckService);
+
+            int pScore = gameService.calculateScore(player.getHand());
+            int dScore = gameService.calculateScore(dealerHand);
+
+            System.out.println("===================");
+            System.out.println("Player Hand: " + player.getHand() + " Score: " + pScore);
+            System.out.println("Dealer Hand: " + dealerHand + " Score: " + dScore);
+            System.out.println("===================");
+
+            GameResult gameResult = gameService.getGameResult(pScore, dScore);
+            System.out.println("Game Result: " + gameResult);
         } while (nextGame(counter++, numberOfGames, scanner));
     }
 
@@ -45,7 +60,7 @@ public class Main {
         return false;
     }
 
-    private static void game(Player player, DeckService deckService, Scanner scanner) {
+    private static void game(Player player, DeckService deckService, Scanner scanner, GameService gameService) {
         String nextcard;
         player.clearHand();
         do {
@@ -54,10 +69,17 @@ public class Main {
                 hand.add(deckService.dealCard());
             }
             hand.add(deckService.dealCard());
-            System.out.println("player hand: " + hand);
+            int score = gameService.calculateScore(hand);
+            System.out.println("player hand: " + hand + " score: " + score);
 
-            System.out.print("Next card? (y/n) ");
-            nextcard = scanner.nextLine();
+            if (score < 21) {
+                System.out.print("Next card? (y/n) ");
+                nextcard = scanner.nextLine();
+            } else {
+                break;
+            }
+
+
 
         } while (nextcard.equalsIgnoreCase("y"));
     }
