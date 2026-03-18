@@ -13,6 +13,6 @@ public class Card {
 
     @Override
     public String toString() {
-        return String.format("s%s%", rank.getName(), suit.getSymbol());
+        return String.format("%s%s", rank.getName(), suit.getSymbol());
     }
 }
