@@ -1,0 +1,18 @@
+package com.game.bj.dto;
+
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
+public class Card {
+    private Rank rank;
+    private Suit suit;
+
+    public int getCost() {
+        return rank.getCost();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("s%s%", rank.getName(), suit.getSymbol());
+    }
+}
