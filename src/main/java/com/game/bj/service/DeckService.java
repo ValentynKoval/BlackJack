@@ -6,6 +6,7 @@ import com.game.bj.dto.Suit;
 import com.game.bj.exception.DeckException;
 import lombok.SneakyThrows;
 
+import java.util.Collections;
 import java.util.Stack;
 
 public class DeckService {
@@ -15,7 +16,7 @@ public class DeckService {
     public void createDeck(int deckNumber) {
         deck.clear();
 
-        if (deckNumber < 0 || deckNumber > 8) {
+        if (deckNumber < 1 || deckNumber > 8) {
             throw new DeckException("Number of deck must be between 1 to 8");
         }
 
@@ -26,6 +27,7 @@ public class DeckService {
                 }
             }
         }
+        Collections.shuffle(deck); // перемешивает коллекцию
     }
 
     public Stack<Card> getDeck() {
@@ -36,7 +38,7 @@ public class DeckService {
         return deck.size();
     }
 
-    public Card delaCard() {
+    public Card dealCard() {
         return deck.pop();
     }
 }
