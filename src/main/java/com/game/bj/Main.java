@@ -1,11 +1,16 @@
 package com.game.bj;
 
 import com.game.bj.dto.Card;
+import com.game.bj.dto.Currency;
 import com.game.bj.dto.GameResult;
 import com.game.bj.dto.Player;
+import com.game.bj.exception.NotEnoughtMoneyException;
+import com.game.bj.service.BillingService;
 import com.game.bj.service.DeckService;
+import com.game.bj.service.ExchengeService;
 import com.game.bj.service.GameService;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Scanner;
 
@@ -20,12 +25,27 @@ public class Main {
         System.out.print("Enter number of games: ");
         int numberOfGames = scanner.nextInt();
 
-        Player player = new Player(name);
+        System.out.print("Put money in your account: ");
+        int amount = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.print("Put currency (USD, USD, EUR, GBP, BAH, POINT): ");
+        String currency = scanner.nextLine();
+
+
+
+        ExchengeService exchengeService = new ExchengeService();
+        BigInteger convertAmount = exchengeService.toPoint(amount, Currency.valueOf(currency));
+
+        System.out.println("You have " + convertAmount + " points in your account");
+
+        Player player = new Player(name, convertAmount);
 
         System.out.println(String.format("Welcome %s, you have %d games to play", player.getName(), numberOfGames));
 
         DeckService deckService = new DeckService();
         GameService gameService = new GameService();
+        BillingService billingService = new BillingService();
         deckService.createDeck(1);
 
         int counter = 1;
@@ -36,6 +56,17 @@ public class Main {
             System.out.println("-------------------->>>>>>");
             System.out.println(String.format("Game %d", counter));
             game(player, deckService, scanner, gameService);
+
+            System.out.print("Enter bet: ");
+            BigInteger bet = scanner.nextBigInteger();
+            scanner.nextLine();
+
+            try {
+                bet = billingService.validateAmount(player.getAmount(), bet);
+            } catch (NotEnoughtMoneyException e) {
+                break;
+            }
+
 
             List<Card> dealerHand = gameService.getDealerHand(deckService);
 
@@ -49,6 +80,13 @@ public class Main {
 
             GameResult gameResult = gameService.getGameResult(pScore, dScore);
             System.out.println("Game Result: " + gameResult);
+            player.incrementNumberOfGames();
+            if (GameResult.PLAYER.equals(gameResult)) {
+                player.getNumberOfWins();
+                billingService.addAmount(player.getAmount(), bet);
+            } else if (GameResult.DEALER.equals(gameResult) || GameResult.LOSE.equals(gameResult)) {
+                billingService.substructAmount(player.getAmount(), bet);
+            }
         } while (nextGame(counter++, numberOfGames, scanner));
     }
 
@@ -72,6 +110,7 @@ public class Main {
             int score = gameService.calculateScore(hand);
             System.out.println("player hand: " + hand + " score: " + score);
 
+            System.out.println("Balance: " + player.getAmount());
             if (score < 21) {
                 System.out.print("Next card? (y/n) ");
                 nextcard = scanner.nextLine();
